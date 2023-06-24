@@ -9,13 +9,21 @@ import (
 )
 
 func parseTitle(adElement soup.Root, ch chan string) {
-	titleElement := adElement.Find("h6").Text()
-	ch <- titleElement
+	titleElement := adElement.Find("h6")
+	if titleElement.Error != nil {
+		ch <- ""
+	} else {
+		ch <- titleElement.Text()
+	}
 }
 
 func parseLocation(adElement soup.Root, ch chan string) {
 	locationElement := adElement.Find("p", "data-testid", "location-date")
-	ch <- locationElement.Text()
+	if locationElement.Error != nil {
+		ch <- ""
+	} else {
+		ch <- locationElement.Text()
+	}
 }
 
 func parsePrice(adElement soup.Root, ch chan string) {
@@ -64,6 +72,11 @@ func ParseAd(url string) []models.AdModel {
 		doc := soup.HTMLParse(resp)
 		adElements := doc.FindAll("div", "data-cy", "l-card")
 
+		if len(adElements) == 0 {
+			fmt.Println("нет объявлений")
+			break
+		}
+
 		for _, ad := range adElements {
 			titleCh := make(chan string)
 			priceCh := make(chan string)
@@ -95,13 +108,12 @@ func ParseAd(url string) []models.AdModel {
 		}
 
 		nextPageLink := doc.Find("a", "data-testid", "pagination-forward")
-		if nextPageLink.Error == nil {
-			nextPage := fmt.Sprintf("https://www.olx.kz%s", nextPageLink.Attrs()["href"])
-			url = nextPage
-		} else {
+		if nextPageLink.Error != nil {
 			close(adCh)
 			break
 		}
+
+		url = fmt.Sprintf("https://www.olx.kz%s", nextPageLink.Attrs()["href"])
 	}
 
 	<-doneCh

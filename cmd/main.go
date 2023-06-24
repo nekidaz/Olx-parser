@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	url := "https://www.olx.kz/list/q-машина/"
+	url := "https://www.olx.kz/list/q-ljadjflksjafljasdlfkjslkjafajlf/"
 
 	farser.ParseAd(url)
 

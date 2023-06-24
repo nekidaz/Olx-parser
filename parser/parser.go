@@ -9,18 +9,23 @@ import (
 )
 
 func parseTitle(adElement soup.Root) string {
-	titleElement := adElement.Find("h6").Text()
-	return titleElement
+	titleElement := adElement.Find("h6")
+	if titleElement.Error != nil {
+		return ""
+	}
+	return titleElement.Text()
 }
 
 func parseLocation(adElement soup.Root) string {
 	locationElement := adElement.Find("p", "data-testid", "location-date")
+	if locationElement.Error != nil {
+		return ""
+	}
 	return locationElement.Text()
 }
 
 func parsePrice(adElement soup.Root) string {
 	priceElement := adElement.Find("p", "data-testid", "ad-price")
-
 	if priceElement.Error != nil {
 		return ""
 	}
@@ -78,6 +83,7 @@ func ParseAd(url string) {
 			break
 		}
 	}
+
 	err := utils.ConvertToJson(ads)
 	if err != nil {
 		fmt.Println("Ошибка при преобразовании в JSON и записи в файл:", err)
