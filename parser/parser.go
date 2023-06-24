@@ -1,21 +1,12 @@
 package parser
 
 import (
-	"encoding/json"
+	"Go-parser/models"
+	"Go-parser/utils"
 	"fmt"
 	"github.com/anaskhan96/soup"
-	"io/ioutil"
 	"log"
-	"os"
 )
-
-type AdParse struct {
-	Title     string `json:"title"`
-	Price     string `json:"price"`
-	Location  string `json:"location"`
-	Condition string `json:"condition"`
-	Link      string `json:"link"`
-}
 
 func parseTitle(adElement soup.Root) string {
 	titleElement := adElement.Find("h6").Text()
@@ -51,7 +42,7 @@ func parseLink(adElement soup.Root) string {
 }
 
 func ParseAd(url string) {
-	var ads []AdParse
+	var ads []models.AdModel
 	for {
 		resp, err := soup.Get(url)
 		if err != nil {
@@ -68,7 +59,7 @@ func ParseAd(url string) {
 			condition := parseCondition(ad)
 			link := parseLink(ad)
 
-			parsedAd := AdParse{
+			parsedAd := models.AdModel{
 				Title:     title,
 				Price:     price,
 				Location:  location,
@@ -87,29 +78,8 @@ func ParseAd(url string) {
 			break
 		}
 	}
-	err := convertToJson(ads)
+	err := utils.ConvertToJson(ads)
 	if err != nil {
 		fmt.Println("Ошибка при преобразовании в JSON и записи в файл:", err)
 	}
-}
-
-func convertToJson(ads []AdParse) error {
-	jsonData, err := json.MarshalIndent(ads, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll("data", 0755) // Создание директории, если она не существует
-	if err != nil {
-		return err
-	}
-
-	filePath := "data/data.json"
-	err = ioutil.WriteFile(filePath, jsonData, 0644)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Данные успешно записаны в файл", filePath)
-	return nil
 }
